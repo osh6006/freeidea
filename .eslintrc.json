@@ -1,0 +1,32 @@
+{
+  "plugins": ["prettier", "@tanstack/query", "@typescript-eslint"],
+
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@tanstack/query/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+
+  "rules": {
+    "react/no-unknown-property": ["error", { "ignore": [] }],
+
+    // Possible Errors
+    "no-console": "warn",
+    "no-debugger": "warn",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+
+    "no-undef": "off",
+
+    "react/function-component-definition": [
+      2,
+      { "namedComponents": ["arrow-function", "function-declaration"] }
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-empty-object-type": "off"
+  },
+
+  "ignorePatterns": [".next/**/*", "tailwind.config.ts"]
+}

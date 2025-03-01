@@ -1,0 +1,28 @@
+'use client';
+
+import APIError from '@/lib/api-error';
+import { MutationKey, useMutationState } from '@tanstack/react-query';
+
+function PaymentErrorBoundary({
+  children,
+  mutationKey,
+}: {
+  children: React.ReactNode;
+  mutationKey: MutationKey;
+}) {
+  const errorStateList = useMutationState({
+    filters: {
+      mutationKey,
+    },
+  });
+
+  const latestError = errorStateList.at(-1)?.error;
+
+  if (latestError instanceof APIError) {
+    return <div>{latestError.message}</div>;
+  }
+
+  return <>{children}</>;
+}
+
+export default PaymentErrorBoundary;

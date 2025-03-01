@@ -1,0 +1,67 @@
+'use client';
+
+import { ReactNode } from 'react';
+
+import { useParams } from 'next/navigation';
+
+import { OrderListTable } from '@/components/common/payment/payment-complete-template';
+import { paymentMethodDict } from '@/constants/dictionary';
+import { storeMutationKey } from '@/service/store/mutation-option';
+import { WorkOrderResult } from '@/types/work';
+import { useMutationState } from '@tanstack/react-query';
+
+export default function CompleteOrderList() {
+  const { id } = useParams<{ id: string }>();
+
+  const data = useMutationState({
+    filters: {
+      mutationKey: storeMutationKey.payment(id),
+      status: 'success',
+    },
+    select: (mutation) => mutation.state.data as WorkOrderResult,
+  });
+
+  const latestData = data.at(-1);
+
+  if (!latestData) return <>주문 정보 없음</>;
+
+  const { options, additionalFee, paymentMethod } = latestData;
+  const VIRTUAL_ACCOUNT = paymentMethodDict.get('backend').virtualAccount;
+
+  const status = paymentMethod === VIRTUAL_ACCOUNT ? '결제 대기' : '결제 완료';
+
+  const info: {
+    label: ReactNode;
+    price: number;
+    quantity: number;
+    status: string;
+  }[] = [
+    ...options.map(({ optionName, optionPrice, optionQuantity }, index) => ({
+      label: `옵션 ${index + 1}. ${optionName}`,
+      price: optionPrice,
+      quantity: optionQuantity,
+      status,
+    })),
+    additionalFee
+      ? {
+          label: (
+            <span className="text-pink-500 typo-body-14-bold-100-tight">
+              결제 금액 추가
+            </span>
+          ),
+          price: additionalFee,
+          quantity: additionalFee / 1000,
+          status,
+        }
+      : undefined,
+  ].filter((v) => v !== undefined);
+
+  return (
+    <section className="space-y-[20px]">
+      <h2>
+        주문상품 정보 <span className="text-pink-500">{options.length}개</span>
+      </h2>
+      <OrderListTable info={info} />
+    </section>
+  );
+}

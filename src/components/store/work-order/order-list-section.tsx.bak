@@ -1,0 +1,143 @@
+'use client';
+
+import { ReactNode } from 'react';
+import { useFormContext } from 'react-hook-form';
+
+import { useParams } from 'next/navigation';
+
+import ImageWithFallback from '@/components/common/image-with-fallback';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { useRangeDict } from '@/constants/dictionary';
+import { formatCurrency } from '@/lib/utils';
+import { useStoreDetailQuery } from '@/service/store/use-service';
+import { WorkOrderSchemaType } from '@/types/work';
+
+export default function OrderListSection() {
+  const { id } = useParams<{ id: string }>();
+  const { data } = useStoreDetailQuery(id);
+  const { getValues } = useFormContext<WorkOrderSchemaType>();
+
+  if (!data) return;
+  const {
+    title,
+    author,
+    fileTypes,
+    modifyCount,
+    useRange,
+    workDays,
+    thumbnailImages,
+  } = data;
+
+  const items = getValues('options');
+  const additional = getValues('additional');
+
+  const summaries = [
+    {
+      label: '파일 제공 형태',
+      content: fileTypes.join(', '),
+    },
+    {
+      label: '수정 횟수',
+      content: `${modifyCount === 0 ? '무제한' : `${modifyCount}회`}`,
+    },
+    {
+      label: '사용 범위',
+      content: useRange
+        .map((range) => useRangeDict.getTranslator('en-ko').translate(range))
+        .join(' / '),
+    },
+    {
+      label: '작업 기간',
+      content: `${workDays}일`,
+    },
+  ];
+
+  const orderList: { label: ReactNode; price: number; quantity: number }[] = [
+    ...items.map(({ optionName, optionPrice, optionQuantity }, index) => ({
+      label: `${index + 1}. ${optionName}`,
+      price: optionPrice,
+      quantity: optionQuantity,
+    })),
+    additional.checked &&
+      additional.count > 0 && {
+        label: (
+          <span className="text-pink-500 typo-body-16-bold-100-tight">
+            결제 금액 추가
+          </span>
+        ),
+        price: additional.count * 1000,
+        quantity: additional.count,
+      },
+  ].filter((v) => !!v);
+
+  return (
+    <section>
+      <div className="flex gap-[6px] mb-[20px]">
+        <h2>주문 내역</h2>
+        <span className="text-pink-500 typo-title-18-bold-100">
+          {items.length + (additional.checked ? 1 : 0)}개
+        </span>
+      </div>
+      <div className="flex flex-col divide-y divide-border border border-border rounded-[6px] overflow-hidden">
+        <div className="p-[20px] bg-slate-50 flex gap-[10px] items-center">
+          <div className="relative size-[80px] bg-slate-200 rounded overflow-hidden">
+            <ImageWithFallback
+              src={thumbnailImages[0].fileUrl}
+              alt="author profile"
+              fill
+              sizes="80px"
+              fallback={undefined}
+              className="object-cover"
+            />
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            <div className="flex gap-[6px] items-center">
+              <Avatar className="size-[24px]">
+                <AvatarImage src={author.profileImageUrl}></AvatarImage>
+                <AvatarFallback className="bg-slate-200" />
+              </Avatar>
+              <span>{author.nickname}</span>
+            </div>
+            <div>{title}</div>
+          </div>
+        </div>
+        <div className="p-[20px] flex flex-col gap-[10px]">
+          {summaries.map(({ label, content }) => (
+            <div
+              key={label}
+              className="flex items-center"
+            >
+              <span className="typo-body-14-medium-100-tight w-[120px] text-slate-500">
+                {label}
+              </span>
+              <span className="typo-body-14-regular-150-tight">{content}</span>
+            </div>
+          ))}
+        </div>
+        <ol className="divide-y divide-border ">
+          {orderList.map(({ label, price, quantity }) => (
+            <li
+              key={label?.toString()}
+              className="p-[20px] space-y-[10px]"
+            >
+              <div className="typo-body-16-regular-150">{label}</div>
+              <div className="flex gap-[6px] items-center">
+                <span className="typo-title-20-bold-100-tight">
+                  {formatCurrency(price)}원
+                </span>
+                <Separator
+                  orientation="vertical"
+                  className="h-[10px]"
+                />
+                <span className="typo-body-16-medium-100-tight text-slate-500">
+                  {quantity}개
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}

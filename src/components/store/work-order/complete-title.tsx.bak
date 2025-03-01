@@ -1,0 +1,73 @@
+'use client';
+
+import { useParams } from 'next/navigation';
+
+import ImageWithFallback from '@/components/common/image-with-fallback';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { paymentMethodDict } from '@/constants/dictionary';
+import { formatCurrency } from '@/lib/utils';
+import { storeMutationKey } from '@/service/store/mutation-option';
+import { useStoreDetailQuery } from '@/service/store/use-service';
+import { WorkOrderResult } from '@/types/work';
+import { useMutationState } from '@tanstack/react-query';
+
+export default function CompleteTitle() {
+  const { id } = useParams<{ id: string }>();
+  const { data } = useStoreDetailQuery(id);
+  const paymentResults = useMutationState({
+    filters: {
+      mutationKey: storeMutationKey.payment(id),
+      status: 'success',
+    },
+    select: (mutation) => mutation.state.data as WorkOrderResult,
+  });
+
+  const paymentResult = paymentResults.at(-1);
+
+  if (!data || !paymentResult) return;
+
+  const VIRTUAL_ACCOUNT = paymentMethodDict.get('backend').virtualAccount;
+
+  return (
+    <>
+      {paymentResult.paymentMethod === VIRTUAL_ACCOUNT ? (
+        <div className="flex flex-col items-center">
+          <h1 className="typo-title-32-bold-150 text-center mb-[30px]">
+            입금 대기중입니다.
+          </h1>
+          <div>
+            입금 금액: {formatCurrency(paymentResult.paidAmount || 0)}원
+          </div>
+        </div>
+      ) : (
+        <h1 className="typo-title-32-bold-150 text-center mb-[30px]">
+          주문이 완료되었습니다.
+        </h1>
+      )}
+
+      <div className="bg-slate-50 rounded-[10px] p-[20px] flex gap-[10px] items-center">
+        <div className="relative size-[80px] bg-slate-200 rounded-[6px]">
+          <ImageWithFallback
+            alt="athor profile"
+            src={data.thumbnailImages[0].fileUrl}
+            fill
+            sizes="80px"
+            fallback={'error'}
+          />
+        </div>
+        <div className="flex flex-col gap-[10px]">
+          <div className="flex gap-[6px] items-center">
+            <Avatar className="size-[24px]">
+              <AvatarImage src={data.author.profileImageUrl}></AvatarImage>
+              <AvatarFallback />
+            </Avatar>
+            <span className="text-slate-600 typo-body-14-semi-bold-100-tight">
+              {data.author.nickname}
+            </span>
+          </div>
+          <div>{data.title}</div>
+        </div>
+      </div>
+    </>
+  );
+}

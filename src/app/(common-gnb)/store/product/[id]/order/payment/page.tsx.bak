@@ -1,0 +1,33 @@
+import ClosePreventPresence from '@/components/common/close-prevent-presence';
+import OrderListSection from '@/components/store/work-order/order-list-section';
+import PaymentMethodSection from '@/components/store/work-order/payment-method-section';
+import SideBar from '@/components/store/work-order/side-bar';
+
+export default async function PaymentPage() {
+  return (
+    <>
+      <ClosePreventPresence />
+      <div className="flex relative gap-[60px] h-fit mb-[200px]">
+        <div className=" flex flex-col gap-[40px] flex-grow">
+          <OrderListSection />
+          <PaymentMethodSection />
+          <section className="space-y-[20px]">
+            <h2>세금 계산서 발행 안내</h2>
+            <ul className="typo-body-16-regular-150 text-text-sub list-disc list-inside px-2">
+              <li>
+                일반회원이 구매하신 서비스에 대한 세금계산서는 거래
+                공급자인&nbsp;
+                {"'작가'"}가 일반회원에게 직접 발행합니다.
+              </li>
+              <li>
+                세금계산서 발급이 가능한 사업자인 작가일 경우에만 발행
+                가능합니다.
+              </li>
+            </ul>
+          </section>
+        </div>
+        <SideBar />
+      </div>
+    </>
+  );
+}

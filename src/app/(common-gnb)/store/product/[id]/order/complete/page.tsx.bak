@@ -1,0 +1,44 @@
+import Link from 'next/link';
+
+import CompleteOrderList from '@/components/store/work-order/complete-order-list';
+import CompletePaymentInfo from '@/components/store/work-order/complete-payment-info';
+import CompleteTitle from '@/components/store/work-order/complete-title';
+import PaymentErrorBoundary from '@/components/store/work-order/payment-error-boundary';
+import { Button } from '@/components/ui/button';
+import { PATH } from '@/constants/path';
+import { storeMutationKey } from '@/service/store/mutation-option';
+
+export default function OrderCompletePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  return (
+    <>
+      <PaymentErrorBoundary mutationKey={storeMutationKey.payment(params.id)}>
+        <div className="[&_h2]:typo-body-16-bold-100-tight flex flex-col gap-[30px]">
+          <CompleteTitle />
+          <div className="flex flex-col gap-[50px]">
+            <CompleteOrderList />
+            <CompletePaymentInfo />
+          </div>
+        </div>
+      </PaymentErrorBoundary>
+      <div className="mt-[30px] mb-[200px] flex items-center justify-center gap-[20px]">
+        <Button
+          size="2xl"
+          variant="outline"
+          asChild
+        >
+          <Link href={PATH.workDetail(params.id)}>계속 작품 감상하기</Link>
+        </Button>
+        <Button
+          size="2xl"
+          asChild
+        >
+          <Link href={PATH.myOrderList}>주문 조회</Link>
+        </Button>
+      </div>
+    </>
+  );
+}

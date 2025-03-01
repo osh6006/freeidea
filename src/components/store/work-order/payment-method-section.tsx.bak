@@ -1,0 +1,74 @@
+'use client';
+
+import { Fragment } from 'react';
+import { useFormContext } from 'react-hook-form';
+
+import { Button } from '@/components/ui/button';
+import { FormField, FormItem } from '@/components/ui/form';
+import { Separator } from '@/components/ui/separator';
+import {
+  EASY_PAY_BUTTON_OPTIONS,
+  PAY_BUTTON_OPTIONS,
+} from '@/constants/payment/button-option';
+import { cn } from '@/lib/utils';
+import { WorkOrderSchemaType } from '@/types/work';
+
+// @ts-nocheck
+
+// Todo. payment 공통 컴포넌트 사용
+export default function PaymentMethodSection() {
+  const { control } = useFormContext<WorkOrderSchemaType>();
+
+  const payButtonGroups = [EASY_PAY_BUTTON_OPTIONS, PAY_BUTTON_OPTIONS];
+
+  return (
+    <section className="flex flex-col gap-[20px]">
+      <h2>결제 수단</h2>
+
+      <div className="flex gap-[16px] flex-col">
+        {payButtonGroups.map((payButtonOptions, index) => (
+          <Fragment key={payButtonOptions.map(({ label }) => label).join()}>
+            <div className="flex gap-[10px]">
+              {payButtonOptions.map(({ label, payMethod, icon }) => (
+                <FormField
+                  key={label}
+                  control={control}
+                  name="payMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Button
+                        type="button"
+                        className={cn(
+                          'w-[174px]',
+                          payMethod === field.value &&
+                            'border-pink-500 text-pink-500 hover:border-pink-500'
+                        )}
+                        variant="outline"
+                        size="2xl"
+                        onClick={() => field.onChange(payMethod)}
+                      >
+                        {icon ? (
+                          payMethod === 'tossPay' ? (
+                            <div className={`relative size-[20px] mr-[6px]`}>
+                              {icon}
+                            </div>
+                          ) : (
+                            <div className={`relative size-[40px] mr-[6px]`}>
+                              {icon}
+                            </div>
+                          )
+                        ) : null}
+                        {label}
+                      </Button>
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
+            {index < payButtonGroups.length - 1 && <Separator />}
+          </Fragment>
+        ))}
+      </div>
+    </section>
+  );
+}

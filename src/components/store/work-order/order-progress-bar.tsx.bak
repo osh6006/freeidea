@@ -1,0 +1,35 @@
+'use client';
+
+import { useParams, usePathname } from 'next/navigation';
+
+import { PATH } from '@/constants/path';
+import { cn } from '@/lib/utils';
+import { ChevronRight } from '@untitled-ui/icons-react';
+
+// Todo. payment 공통 컴포넌트 사용
+export default function OrderProgressBar() {
+  const { id } = useParams<{ id: string }>();
+  const pathname = usePathname();
+
+  const isWorkOrder = pathname === PATH.workOrder(id);
+  const isComplete = pathname === PATH.workOrderComplete(id);
+
+  const style = {
+    active: 'text-pink-500',
+    default: 'text-slate-300',
+  };
+
+  return (
+    <nav>
+      <ul className="flex gap-[20px] justify-center items-center typo-body-14-bold-100-tight">
+        <li className={cn(isWorkOrder ? style.active : style.default)}>
+          01. 결제
+        </li>
+        <ChevronRight className="text-slate-200" />
+        <li className={cn(isComplete ? style.active : style.default)}>
+          02. 결제확인
+        </li>
+      </ul>
+    </nav>
+  );
+}

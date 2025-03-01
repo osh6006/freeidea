@@ -1,0 +1,104 @@
+'use client';
+
+import { useParams } from 'next/navigation';
+
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { paymentMethodDict } from '@/constants/dictionary';
+import { formatCurrency } from '@/lib/utils';
+import { storeMutationKey } from '@/service/store/mutation-option';
+import { WorkOrderResult } from '@/types/work';
+import { useMutationState } from '@tanstack/react-query';
+import { formatDate } from 'date-fns';
+
+export default function CompletePaymentInfo() {
+  const { id } = useParams<{ id: string }>();
+  const dataStateList = useMutationState({
+    filters: {
+      mutationKey: storeMutationKey.payment(id),
+      status: 'success',
+    },
+    select: (mutation) => mutation.state.data as WorkOrderResult,
+  });
+
+  const latestData = dataStateList.at(-1);
+
+  if (!latestData) return <>결제 정보 없음</>;
+
+  const {
+    expiredAt,
+    bank,
+    paymentMethod,
+    paidAmount,
+    orderedAt,
+    remitteeName,
+    accountNumber,
+    remitterName,
+    easyPayProvider,
+  } = latestData;
+
+  const VIRTUAL_ACCOUNT = paymentMethodDict.get('backend').virtualAccount;
+  const isVirtualAccount = paymentMethod === VIRTUAL_ACCOUNT;
+  const isEasyPay = paymentMethod === paymentMethodDict.get('backend').easyPay;
+
+  const payMethodLabel = isEasyPay
+    ? easyPayProvider
+    : paymentMethodDict.getTranslator('backend-ko').translate(paymentMethod);
+
+  const info = [
+    {
+      label: '결제 방법',
+      value: payMethodLabel,
+      hidden: false,
+    },
+    {
+      label: '주문 접수 일시',
+      value: orderedAt,
+      hidden: false,
+    },
+    {
+      label: '입금 예정자명',
+      value: remitterName,
+      hidden: !isVirtualAccount,
+    },
+    {
+      label: '결제 금액',
+      value: `${formatCurrency(paidAmount || 0)}원`,
+      hidden: false,
+    },
+    {
+      label: '입금 계좌',
+      value: `${bank} (${accountNumber})`,
+      hidden: !isVirtualAccount,
+    },
+    {
+      label: '예금주 명',
+      value: remitteeName,
+      hidden: !isVirtualAccount,
+    },
+    {
+      label: '입금기한',
+      value: `${formatDate(expiredAt || 0, 'yyyy-MM-dd')} 까지`,
+      hidden: !isVirtualAccount,
+    },
+  ].filter(({ hidden }) => !hidden);
+
+  return (
+    <section className="space-y-[20px]">
+      <h2>결제 정보</h2>
+      <Table>
+        <TableBody>
+          {info.map(({ label, value }) => (
+            <TableRow key={label}>
+              <TableCell className="border-r text-center typo-body-14-semi-bold-100-tight min-w-[200px]">
+                {label}
+              </TableCell>
+              <TableCell className="w-full typo-body-14-regular-150-tight">
+                {value}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </section>
+  );
+}
